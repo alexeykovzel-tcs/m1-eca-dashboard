@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>P2000 Tweet Analyzer</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/media/logo.png" />
+    <link rel="stylesheet" href="/style/layout.css" />
+    <link rel="stylesheet" href="/style/theme.css" />
+    <link rel="stylesheet" href="/style/bootstrap/css/bootstrap.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Varela+Round&display=swap"
+        rel="stylesheet">
+    <script src="/lib/jquery-2.1.1.min.js"></script>
+    <script src="/lib/jquery.flot.min.js"></script>
+    <script src="/lib/jquery.flot.categories.min.js"></script>
+    <script src="/lib/jquery.flot.pie.js"></script>
+    <script src="/lib/core.js"></script>
+    <script src="/lib/charts.js"></script>
+    <script src="/lib/barcharts.js"></script>
+    <script src="/lib/log.js"></script>
+    <script src="/lib/form.js"></script>
+    <script src="/lib/tweets.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="lib/jqcloud.css" />
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js"></script>
+    <script type="text/javascript" src="lib/jqcloud-1.0.4.js"></script>
+    <script src="/lib/wordcloud.js"></script>
+</head>
+
+<body class="p-2 p-md-4 w-100">
+    <div class="row mx-0 m-0 mt-0 mt-md-1 main-header" style="display: table;">
+        <img src="/media/logo.png" alt="p2000 logo" style="height: 80px; width: 90px;">
+        <h1 class="p-0 m-0 align-middle" style="display: inline;">
+            <a class="link" target="blank" href="http://p2000-online.net/">P2000</a>
+            Twitter Analyzer
+        </h1>
+    </div>
+
+    <div class="row mx-0 mb-4 mt-4 info-block">
+        <div class="col-12 col-md-6 m-0 w-100">
+            <div class="row mx-0 w-100 p-4 graph-block">
+                <p class="block-header">Tweet List</p>
+                <div id="tweets" class="tweet-list w-100" style="border-radius: 8px; overflow-y: hidden; min-height: 300px; max-height: 300px;"></div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 m-0 w-100">
+            <div class="row w-100 p-4 mx-0 graph-block">
+                <div class="row m-0 w-100">
+                    <p class="col-12 mx-auto block-header">Total Tweets by Emergency Code</p>
+                    <div id="piechart" class="col-6 grid_6 vert_4 mx-auto graph"></div>
+                    <div class="col-5 mx-auto" style="font-size: 13.5px;">
+                        <p style="margin: 0;">AMB - Ambulance (not specified)</p>
+                        <p style="margin: 0;">A1 - Ambulance with lights & sirens</p> 
+                        <p style="margin: 0;">A2 - Ambulance without lights & sirens</p>
+                        <p style="margin: 0;">B - Ambulance (ordered transport)</p>
+                        <p style="margin: 0;">BR - Fire alarm (not specified)</p>
+                        <p style="margin: 0;">BR 1 - Fire alarm (high urgency)</p>
+                        <p style="margin: 0;">BR 2 - Fire alarm (normal urgency)</p>
+                        <p style="margin: 0;">BR 3 - Fire alarm (low urgency)</p>
+                        <p style="margin: 0;">HV 1 - Fire truck (with extra equipment)</p>
+                        <p style="margin: 0;">HV 2 - Fire truck (regular)</p>
+                        <p style="margin: 0;">HV 3 - Fire truck (lightly equipped)</p>
+                        <p style="margin: 0;">HV 5 - Fire truck (trial alarm)</p>
+                        <p style="margin: 0;">P 1 - High priority</p>
+                        <p style="margin: 0;">P 2 - Normal priority</p>
+                        <p style="margin: 0;">P 3 - Low priority</p>
+                        <p style="margin: 0;">U - Undefined</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 m-0 w-100">
+            <div class="row mx-0 w-100 p-4 graph-block-wide">
+                <p class="block-header">Total Tweets of Emergency Calls per City</p>
+                <div id="barchart" class="w-100 mx-auto grid_wide vert_5 graph"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // create a rolling chart block
+        block("#barchart").barchart({
+            // bar preset
+            series: {
+                serie1: {
+                    // series supposed to be predefined
+                    color: "blue",
+                    data: {
+                        // data could be empty
+                    },
+                    bars: {
+                        show: true,
+                        barWidth: 0.7,
+                        align: "center",
+                    },
+                },
+            },
+            bar_options: {
+                series: {
+                    bar: { show: true },
+                },
+                label: {
+                    show: false
+                },
+                bars: {
+                    align: "center",
+                    barWidth: 2,
+                },
+            },
+        });
+
+        // create a rolling chart block
+        block("#piechart").piechart({
+            filter_function: function (cat, val, max) { return true },
+            options: {
+                series: {
+                    pie: {
+                        show: true,
+                        radius: 0.8,
+                        innerRadius: 0.4,
+                        shadow: {
+                            left: 5,	// shadow left offset
+                            top: 15,	// shadow top offset
+                            alpha: 0.02	// shadow alpha
+                        },
+                        stroke: {
+                            color: '#FFF',
+                            width: 5
+                        },
+                        label: {
+                            show: true,
+                            formatter: function (label, slice) {
+                                return "<div style='font-size:x-small;font-weight:700;text-align:center;padding:8px;color:" + slice.color + ";'>" + label + "<br/>" + Math.round(slice.percent) + "%</div>";
+                            },	// formatter function
+                            radius: 1,	// radius at which to place the labels (based on full calculated radius if <=1, or hard pixel value)
+                            background: {
+                                color: '#000',
+                                opacity: 0
+                            },
+                            threshold: 0	// percentage at which to hide the label (i.e. the slice is too narrow)
+                        },
+                        combine: {
+                            threshold: -1,	// percentage at which to combine little slices into one larger slice
+                            color: null,	// color to give the new slice (auto-generated if null)
+                            label: "Other"	// label to give the new slice
+                        },
+                        highlight: {
+                            //color: "#fff",		// will add this functionality once parseColor is available
+                            opacity: 0.5
+                        }
+                    }
+                },
+                legend: {
+                    show: false
+                }
+            }
+        });
+
+        block("#tweets").tweets({
+            memory: 10,
+        });
+
+        // connect div elements to events
+        events.connect("barlistener", "#barchart");
+        events.connect("pielistener", "#piechart");
+        events.connect("tweet", "#tweets");
+    </script>
+</body>
+
+<footer class="mb-1 foot">
+    <table style="width: 100%; margin: 0 auto 0 auto">
+        <h5 style="
+          text-align: left;
+          padding-bottom: 0.5rem;
+          font-weight: bold;
+          color: white;
+        ">
+            Project Developers
+        </h5>
+        <hr style="background-color: white;" />
+        <tbody>
+            <tr>
+                <td>Aliaksei Kouzel (s2648563)</td>
+                <td>Daniel Liashenko (s2653117)</td>
+            </tr>
+            <tr>
+                <td>Artem Polkovnikov (s2812215)</td>
+                <td>Ferdinand de Jong (s2801612)</td>
+            </tr>
+            <tr>
+                <td>Erick Divin (s2679825)</td>
+                <td>Katsiaryna Radzkova (s2646749)</td>
+            </tr>
+        </tbody>
+    </table>
+</footer>
+
+</html>
